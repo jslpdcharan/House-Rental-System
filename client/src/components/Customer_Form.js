@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import Axios from 'axios';
 import {useNavigate} from "react-router-dom";
 import App from "../App";
-import {grey} from "@mui/material/colors";
 
+// customer Registration Form
 function CustomerForm() {
     const [first_name, setFirstName] = useState('');
     const [last_name, setLastName] = useState('');
