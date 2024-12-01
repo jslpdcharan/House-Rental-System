@@ -3,6 +3,7 @@ import NavBar from "../components/NavBar";
 import React, {useEffect, useState} from "react";
 import Axios from "axios";
 
+// Customer Registration and Sign In Form
 export default function Customer_Records_Display() {
     const [records, setRecords] = useState([]);
     const [customer_records, setCustomerRecords] = useState([]);
