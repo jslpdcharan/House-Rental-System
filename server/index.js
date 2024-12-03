@@ -3,7 +3,15 @@ const app = express();
 const cors =require("cors");
 const bodyParser = require('body-parser')
 const mysql = require('mysql2');
-
+const { OpenAI } = require('openai');
+const http = require('http');
+const corsOptions = {
+    origin: '*',
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+app.use(express.json());
+require('dotenv').config();
 // database credentials
 const db = mysql.createConnection({
     host: "localhost",
@@ -14,7 +22,15 @@ const db = mysql.createConnection({
 app.use(cors());
 app.use(express.json())
 app.use(bodyParser.urlencoded({extended: true}))
+require('dotenv').config();
 
+let worksheets = {}; // Temporary in-memory storage for worksheet data
+const userThreads = {}; // Temporary in-memory storage to track threads by username
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY, // Ensure to add your OpenAI API key in your .env file
+});
+const ASSISTANT_ID = process.env.ASSISTANT_ID;
 
 // To upload the request to list property in the website
 app.post("/api/update_approval_property_list",(req,res) =>{
@@ -286,6 +302,83 @@ app.post("/api/update_vacant_status",(req,res) =>{
             res.send(null);
         }
     });
+});
+
+app.post('/api/chatgpt', async (req, res) => {
+    console.log('Assistant Function Called...');
+    const username = "guest_user"; // Constant username
+    const { message } = req.body;
+
+    if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+    }
+
+    try {
+        let threadId;
+
+        // Check if the constant user already has a thread
+        if (userThreads[username]) {
+            threadId = userThreads[username];
+            console.log('Reused the old thread...');
+        } else {
+            // Create a new thread for the constant user if none exists
+            console.log('Created new thread...');
+            const thread = await openai.beta.threads.create();
+            threadId = thread.id;
+            userThreads[username] = threadId;
+        }
+        console.log(`Thread ID: ${threadId}`);
+
+        // Send the user's message to the assistant
+        await openai.beta.threads.messages.create(
+            threadId,
+            { role: "user", content: message }
+        );
+
+        // Run the assistant on the user's thread
+        const run = await openai.beta.threads.runs.create(
+            threadId,
+            { assistant_id: ASSISTANT_ID }
+        );
+
+        // Poll the assistant's status until the run is completed
+        let runStatus;
+        do {
+            runStatus = await openai.beta.threads.runs.retrieve(
+                threadId,
+                run.id
+            );
+            if (runStatus.status === "failed") {
+                return res.status(500).json({ error: "Assistant run failed" });
+            }
+            if (runStatus.status !== "completed") {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        } while (runStatus.status !== "completed");
+
+        // Retrieve the assistant's response
+        const messages = await openai.beta.threads.messages.list(threadId);
+
+        let assistantResponse = 'Sorry, I did not understand that.';
+        for (const message of messages.data) {
+            if (message.role === 'assistant') {
+                for (const content of message.content) {
+                    if (content.type === 'text') {
+                        assistantResponse = content.text.value;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        // Send the response back to the frontend
+        res.json({ content: assistantResponse });
+
+    } catch (error) {
+        console.error("Error in /api/assistant/message:", error);
+        res.status(500).json({ error: "Something went wrong. Please try again." });
+    }
 });
 app.listen(3001,() =>
 {
