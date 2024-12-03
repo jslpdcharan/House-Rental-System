@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
-import Axios from 'axios';
-import {useNavigate} from "react-router-dom";
-import App from "../App";
+import React, { useState } from "react";
+import Axios from "axios";
+import { useNavigate } from "react-router-dom";
+import "../styles/CustomerForm.css"; // Import a CSS file for styling
 
-// customer Registration Form
 function CustomerForm() {
-    const [first_name, setFirstName] = useState('');
-    const [last_name, setLastName] = useState('');
-    const [phone, setPhone] = useState('');
-    const [email_id, setEmailId] = useState('');
-    const [occupation, setOccupation] = useState('');
-    const [annual_income, setAnnualIncome] = useState('');
-    const [dob, setDob] = useState('');
-    const [ssn, setSSN] = useState('');
+    const [first_name, setFirstName] = useState("");
+    const [last_name, setLastName] = useState("");
+    const [phone, setPhone] = useState("");
+    const [email_id, setEmailId] = useState("");
+    const [occupation, setOccupation] = useState("");
+    const [annual_income, setAnnualIncome] = useState("");
+    const [dob, setDob] = useState("");
+    const [ssn, setSSN] = useState("");
     const [mode, setMode] = useState(null);
     const navigate = useNavigate();
 
@@ -29,112 +28,174 @@ function CustomerForm() {
             occupation,
             annual_income,
             dob,
-            ssn
+            ssn,
         })
-            .then(response => {
-                console.log("Server response:", response);
-                create_form_reset();
-                alert("Record Successfully Inserted into the Approval Property List Table");
+            .then(() => {
+                createFormReset();
+                alert("Record successfully created!");
                 navigate("/home");
             })
-            .catch(error => {
-                console.error("Detailed error:", error.response.data);
-                alert("Error updating the . Please try again later.");
+            .catch((error) => {
+                console.error("Error:", error.response.data);
+                alert("Error creating account. Please try again.");
             });
     };
 
-
-    const authenticate_customer = () => {
+    const authenticateCustomer = () => {
         Axios.post(`${process.env.REACT_APP_SERVER_BASE_URL}/api/customer_login`, {
-            ssn: ssn,
-            phone: phone
+            ssn,
+            phone,
         })
-            .then(response => {
-                if(response.data.success) {
+            .then((response) => {
+                if (response.data.success) {
                     navigate(`/home/customer_login/customer_records/${phone}/${ssn}/${first_name}`);
                 } else {
-                    alert('Incorrect ssn or phone');
+                    alert("Incorrect SSN or phone number.");
                     resetForm();
                 }
             })
-            .catch(error => {
+            .catch((error) => {
                 console.error("Error during authentication:", error);
-                alert("An error occurred. Please try again later.");
+                alert("Authentication failed. Please try again.");
             });
     };
 
     const resetForm = () => {
-        setSSN('');
-        setPhone('');
-        setFirstName('');
+        setFirstName("");
+        setLastName("");
+        setPhone("");
+        setEmailId("");
+        setOccupation("");
+        setAnnualIncome("");
+        setDob("");
+        setSSN("");
     };
-    const create_form_reset = () => {
-        setFirstName('');
-        setLastName('');
-        setPhone('');
-        setEmailId('');
-        setOccupation('');
-        setAnnualIncome('');
-        setSSN('');
-        setDob('');
+
+    const createFormReset = () => {
+        resetForm();
     };
 
     return (
-        <center>
-        <div>
-            <div>
-                <h2>Login or Sign Up</h2>
-                <br></br>
-            <button onClick={() => setMode('create')}>Create Account</button>
-            <button onClick={() => setMode('login')}>Login Account</button>
+        <div className="customer-form-container">
+            <h1>Customer Portal</h1>
+            <div className="button-group">
+                <button className="action-button" onClick={() => setMode("create")}>
+                    Create Account
+                </button>
+                <button className="action-button" onClick={() => setMode("login")}>
+                    Login
+                </button>
             </div>
-            {mode === 'create' && (
-                <div>
-                        <h2>Customer Create Account</h2>
-                    <div className={App}>
-                        <br></br>
-                        <div className="property_form">
-                            <label htmlFor="first_name">First Name</label>
-                            <input type="text" id="first_name" value={first_name} onChange={e => setFirstName(e.target.value)} />
-                            <label htmlFor="last_name">Last Name</label>
-                            <input type="text" id="last_name" value={last_name} onChange={e => setLastName(e.target.value)} />
-                            <label htmlFor="phone_number">Phone Number</label>
-                            <input type="text" id="phone" value={phone} onChange={e => setPhone(e.target.value)} />
-                            <label htmlFor="email_id">Email Id</label>
-                            <input type="text" id="email_id" value={email_id} onChange={e => setEmailId(e.target.value)} />
-                            <label htmlFor="occupation">Occupation</label>
-                            <input type="text" id="occupation" value={occupation} onChange={e => setOccupation(e.target.value)} />
-                            <label htmlFor="annual_income">Annual Income</label>
-                            <input type="number" id="annual_income" value={annual_income} onChange={e => setAnnualIncome(e.target.value)} />
-                            <label htmlFor="dob">Date Of Birth(yyyy-mm-dd)</label>
-                            <input type="text" id="dob" value={dob} onChange={e => setDob(e.target.value)} />
-                            <label htmlFor="ssn">SSN</label>
-                            <input type="password" id="ssn" value={ssn} onChange={e => setSSN(e.target.value)} />
-                            <button onClick={handleCreateAccount}>Login</button>
-                        </div>
-                    </div>
+
+            {mode === "create" && (
+                <div className="form-wrapper">
+                    <h2>Create Account</h2>
+                    <form className="form">
+                        <label>First Name</label>
+                        <input
+                            type="text"
+                            value={first_name}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            placeholder="Enter your first name"
+                        />
+
+                        <label>Last Name</label>
+                        <input
+                            type="text"
+                            value={last_name}
+                            onChange={(e) => setLastName(e.target.value)}
+                            placeholder="Enter your last name"
+                        />
+
+                        <label>Phone Number</label>
+                        <input
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="Enter your phone number"
+                        />
+
+                        <label>Email Address</label>
+                        <input
+                            type="email"
+                            value={email_id}
+                            onChange={(e) => setEmailId(e.target.value)}
+                            placeholder="Enter your email"
+                        />
+
+                        <label>Occupation</label>
+                        <input
+                            type="text"
+                            value={occupation}
+                            onChange={(e) => setOccupation(e.target.value)}
+                            placeholder="Enter your occupation"
+                        />
+
+                        <label>Annual Income</label>
+                        <input
+                            type="number"
+                            value={annual_income}
+                            onChange={(e) => setAnnualIncome(e.target.value)}
+                            placeholder="Enter your annual income"
+                        />
+
+                        <label>Date of Birth</label>
+                        <input
+                            type="date"
+                            value={dob}
+                            onChange={(e) => setDob(e.target.value)}
+                        />
+
+                        <label>SSN</label>
+                        <input
+                            type="password"
+                            value={ssn}
+                            onChange={(e) => setSSN(e.target.value)}
+                            placeholder="Enter your SSN"
+                        />
+
+                        <button type="button" className="submit-button" onClick={handleCreateAccount}>
+                            Submit
+                        </button>
+                    </form>
                 </div>
             )}
 
-            {mode === 'login' && (
-                <div>
-                    <div className={App}>
-                        <div className="property_form">
-                        <h2>Login</h2>
-                            <br></br>
-                            <label htmlFor="first_name">First Name</label>
-                        <input type="text" id="first_name" value={first_name} onChange={e => setFirstName(e.target.value)} />
-                        <label htmlFor="phone_number">Phone Number</label>
-                        <input type="text" id="phone" value={phone} onChange={e => setPhone(e.target.value)} />
-                        <label htmlFor="ssn">SSN</label>
-                        <input type="password" id="ssn" value={ssn} onChange={e => setSSN(e.target.value)} />
-                        <button onClick={authenticate_customer}>Login</button>
-                    </div>
-                </div>
+            {mode === "login" && (
+                <div className="form-wrapper">
+                    <h2>Login</h2>
+                    <form className="form">
+                        <label>First Name</label>
+                        <input
+                            type="text"
+                            value={first_name}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            placeholder="Enter your first name"
+                        />
+
+                        <label>Phone Number</label>
+                        <input
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="Enter your phone number"
+                        />
+
+                        <label>SSN</label>
+                        <input
+                            type="password"
+                            value={ssn}
+                            onChange={(e) => setSSN(e.target.value)}
+                            placeholder="Enter your SSN"
+                        />
+
+                        <button type="button" className="submit-button" onClick={authenticateCustomer}>
+                            Login
+                        </button>
+                    </form>
                 </div>
             )}
         </div>
-        </center>
     );
 }
 
